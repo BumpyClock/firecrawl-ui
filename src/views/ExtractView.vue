@@ -88,14 +88,9 @@
 
         <!-- Scrape Options: controls forwarded as `scrapeOptions` to /v2/extract,
              mirroring how ScrapeView groups its own page/scrape options. -->
-        <fieldset class="form-group options-fieldset">
-          <legend
-            class="collapsible-header"
-            @click="isScrapeOptionsCollapsed = !isScrapeOptionsCollapsed"
-          >
-            Scrape Options
-          </legend>
-          <div v-show="!isScrapeOptionsCollapsed">
+        <details class="form-group options-fieldset">
+          <summary>Scrape Options</summary>
+          <div>
             <div class="form-group">
               <label>Formats</label>
               <div class="checkbox-grid">
@@ -226,7 +221,7 @@
               <small v-if="headersError" class="error-message">{{ headersError }}</small>
             </div>
           </div>
-        </fieldset>
+        </details>
 
         <button
           type="submit"
@@ -402,9 +397,6 @@ const scrapeOptions = ref({
   locationCountry: '',
   locationLanguages: '',
 });
-
-/** Whether the "Scrape Options" fieldset is collapsed, matching ScrapeView's pattern. */
-const isScrapeOptionsCollapsed = ref(true);
 
 const resumeId = ref(''); // Job ID typed by the user to resume a previous extract job.
 
@@ -746,10 +738,6 @@ const downloadResult = (): void => {
 <style scoped>
 /* ── Form layout ──────────────────────────────────────────────── */
 
-/*
- * Deprecation banner: glass card tinted with the warning hue, pointing users
- * to the Scrape page + JSON format as the supported replacement for /v2/extract.
- */
 .deprecation-warning {
   margin-bottom: 1rem;
   padding: 0.75rem 1rem;
@@ -757,8 +745,6 @@ const downloadResult = (): void => {
   border-left: 4px solid var(--hue-warning);
   border-radius: var(--radius-sm);
   background: var(--glass-fill);
-  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
-  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
   color: var(--color-text);
   font-size: 0.85rem;
   line-height: 1.55;
@@ -796,10 +782,6 @@ const downloadResult = (): void => {
   color: var(--color-heading);
 }
 
-/*
- * Textareas: translucent glass fill so the aurora tints the field subtly.
- * Inherits global focus halo (--shadow-ring / violet-500) from base.css.
- */
 .form-group textarea {
   width: 100%;
   padding: 0.55rem 0.75rem;
@@ -807,10 +789,8 @@ const downloadResult = (): void => {
   border-radius: var(--radius-sm);
   font-family: var(--font-mono);
   font-size: 0.84rem;
-  /* Semi-transparent so the aurora bleeds through subtly. */
+
   background: var(--color-background-soft);
-  -webkit-backdrop-filter: blur(6px);
-  backdrop-filter: blur(6px);
   color: var(--color-text);
   resize: vertical;
   transition:
@@ -819,7 +799,6 @@ const downloadResult = (): void => {
   box-sizing: border-box;
 }
 
-/* Soft violet focus halo matching the global ring system. */
 .form-group textarea:focus {
   outline: none;
   border-color: var(--violet-500);
@@ -853,7 +832,6 @@ const downloadResult = (): void => {
   cursor: pointer;
 }
 
-/* Checkbox accent in violet to match the aurora brand. */
 .options input[type='checkbox'] {
   accent-color: var(--violet-500);
   width: 15px;
@@ -862,34 +840,10 @@ const downloadResult = (): void => {
 
 /* ── Scrape Options fieldset ──────────────────────────────────── */
 
-/*
- * Collapsible glass card for the scrapeOptions group, matching the
- * .options-fieldset / .collapsible-header pattern used by ScrapeView so the
- * two playground forms read as one system.
- */
-.options-fieldset {
-  background: var(--glass-fill);
-  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
-  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
-  border: 1px solid var(--glass-border);
-  padding: 1rem;
-  border-radius: var(--radius-md);
-}
-
 .options-fieldset legend {
   font-weight: 700;
   padding: 0 0.4rem;
   color: var(--color-heading);
-}
-
-.collapsible-header {
-  cursor: pointer;
-  user-select: none;
-  transition: color var(--transition-fast);
-}
-
-.collapsible-header:hover {
-  color: var(--brand-strong);
 }
 
 .checkbox-grid {
@@ -942,15 +896,10 @@ const downloadResult = (): void => {
 
 /* ── Run button ────────────────────────────────────────────────── */
 
-/*
- * Primary action button: violet→cyan aurora sweep with a neon glow.
- * Hover lifts the button (+translateY) and brightens the gradient, matching
- * the HomeView CTA pattern for a consistent feel across views.
- */
 .run-button {
   align-self: flex-start;
   padding: 0.55rem 1.4rem;
-  /* Violet→cyan sweep — the aurora brand gradient. */
+
   background: var(--gradient-violet);
   color: #fff;
   border: 1px solid transparent;
@@ -967,13 +916,9 @@ const downloadResult = (): void => {
 
 .run-button:hover:not(:disabled) {
   background: var(--gradient-violet-hover);
-  transform: translateY(-2px);
-  /* Soft violet glow on hover, matching HomeView CTA hover. */
-  box-shadow: 0 10px 28px -6px rgba(124, 92, 255, 0.6);
 }
 
 .run-button:active:not(:disabled) {
-  transform: translateY(0);
 }
 
 .run-button:disabled {
@@ -1042,16 +987,10 @@ const downloadResult = (): void => {
 
 /* ── Response-actions Download button ─────────────────────────── */
 
-/*
- * Secondary ghost button: frosted glass background with a violet border/glow
- * on hover, consistent with the .btn-secondary pattern in main.css.
- */
 .action-button {
   padding: 0.35rem 0.85rem;
-  /* Translucent glass base so the aurora reads through. */
+
   background: var(--glass-fill);
-  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
-  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
   color: var(--color-heading);
   border: 1px solid var(--glass-border);
   border-radius: var(--radius-sm);
@@ -1066,11 +1005,9 @@ const downloadResult = (): void => {
 }
 
 .action-button:hover {
-  /* Violet accent halo matches the tool-card hover pattern from HomeView. */
   border-color: var(--violet-500);
   color: var(--brand-strong);
   background: var(--brand-soft);
-  box-shadow: 0 0 0 1px rgba(124, 92, 255, 0.18);
 }
 
 /* ── Result tab: key/value view ───────────────────────────────── */
@@ -1098,7 +1035,7 @@ const downloadResult = (): void => {
 .result-key {
   font-size: 0.8rem;
   font-weight: 700;
-  /* Soft brand hint on the key label — subtle aurora identity. */
+
   color: var(--color-text-mute);
   text-transform: lowercase;
   letter-spacing: 0.03em;
@@ -1127,11 +1064,6 @@ const downloadResult = (): void => {
 
 /* ── Invalid URLs warning strip ───────────────────────────────── */
 
-/*
- * Reuses .deprecation-warning's glass + warning-hue treatment so the response
- * pane's invalid-URLs notice reads as the same visual language as the
- * request pane's deprecation banner, rather than introducing a new hue.
- */
 .invalid-urls-warning {
   margin: 1rem 1rem 0;
 }

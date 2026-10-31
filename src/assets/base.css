@@ -1,499 +1,203 @@
-/*
- * Firecrawl UI — Design tokens ("Glass / Aurora" design language).
- *
- * Dark-first, premium aesthetic built around frosted glass surfaces floating
- * over a slow-drifting aurora of cool multicolor light (electric violet/indigo,
- * magenta/pink, cyan/teal) on a near-black canvas. Light is kept as a secondary
- * variant that still reads as glass over a near-white aurora.
- *
- * All semantic role variables keep the names the views already consume
- * (--color-background, --color-text, --gradient-button, --box-shadow-card, ...)
- * so the new look propagates without rewriting every template. Old "ember"
- * accessors (--ember-500, --brand, --gradient-fire, ...) are kept as aliases
- * that now resolve to the cool palette, so nothing breaks downstream.
- */
-
-/*
- * Raw palette. Primitive, theme-agnostic color stops.
- * Semantic variables below map them to roles per theme.
- */
+/** Neutral workspace tokens. All surfaces are opaque to keep an idle tab static. */
 :root {
-  /* ------------------------------------------------------------------ *
-   * Cool accent ramps — the aurora identity.
-   * ------------------------------------------------------------------ */
-
-  /* Primary accent — electric violet / indigo (the brand). */
-  --violet-50: #f2efff;
-  --violet-100: #e3dcff;
-  --violet-200: #c8bbff;
-  --violet-300: #a892ff;
-  --violet-400: #8b6dff;
-  --violet-500: #7c5cff; /* hero accent */
-  --violet-600: #6a45f0;
-  --violet-700: #5836d6;
-  --violet-800: #472cab;
-  --violet-900: #382587;
-
-  /* Secondary accent — cyan / teal. */
-  --cyan-300: #7af2ff;
-  --cyan-400: #38d9f0;
-  --cyan-500: #18c2dd;
-  --cyan-600: #11a3bd;
-
-  /* Tertiary accent — magenta / pink, used in aurora blobs and gradients. */
-  --magenta-300: #ff8fd0;
-  --magenta-400: #ff5fb6;
-  --magenta-500: #f43f9d;
-  --magenta-600: #d62d83;
-
-  /* ------------------------------------------------------------------ *
-   * Neutral ramps.
-   * ------------------------------------------------------------------ */
-
-  /* Cool near-black canvas (dark side). Slightly blue-violet tinted. */
-  --ink-950: #07070d; /* deepest base canvas */
-  --ink-900: #0a0a12;
-  --ink-850: #0e0e1a;
-  --ink-800: #131322;
-  --ink-700: #1b1b2e;
-  --ink-600: #26263f;
-
-  /* Cool light neutrals (light side). Near-white with a faint cool cast. */
-  --frost-0: #ffffff;
-  --frost-50: #f7f8fc;
-  --frost-100: #eef0f8;
-  --frost-200: #e2e5f1;
-  --frost-300: #cfd3e6;
-  --frost-500: #8b8fa6;
-  --frost-600: #686d86;
-  --frost-700: #474c63;
-  --frost-800: #2a2e42;
-
-  /* Semantic feedback hues (shared by both themes), tuned cool. */
-  --hue-success: #2dd4a7;
-  --hue-success-soft: rgba(45, 212, 167, 0.16);
-  --hue-warning: #fbbf3b;
-  --hue-warning-soft: rgba(251, 191, 59, 0.16);
-  --hue-danger: #ff5470;
-  --hue-danger-soft: rgba(255, 84, 112, 0.16);
-  --hue-info: #5b8cff;
-  --hue-info-soft: rgba(91, 140, 255, 0.16);
-}
-
-/*
- * Theme-agnostic design tokens: typography, radii, gradients, motion, glass.
- * These do not change between light and dark.
- */
-:root {
-  /* Type families — kept identical to before (Inter + mono stack). */
-  --font-sans:
-    'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell,
-    'Helvetica Neue', sans-serif;
-  --font-mono:
-    ui-monospace, 'SF Mono', 'SFMono-Regular', 'JetBrains Mono', 'Fira Code', Menlo, Consolas,
-    monospace;
-
-  /* Radii — slightly rounder to feel soft and glassy. */
-  --radius-sm: 10px;
-  --radius-md: 14px;
-  --radius-lg: 18px;
-  --radius-xl: 24px;
+  --font-sans: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-mono: ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 10px;
+  --radius-xl: 12px;
   --radius-pill: 999px;
-
-  /* ------------------------------------------------------------------ *
-   * Brand gradients (cool aurora). The old fire names are kept as the
-   * canonical tokens so every view and class that references them now
-   * renders the cool look automatically.
-   * ------------------------------------------------------------------ */
-  --gradient-aurora: linear-gradient(
-    135deg,
-    var(--violet-500) 0%,
-    var(--magenta-500) 55%,
-    var(--cyan-500) 120%
-  );
-  --gradient-aurora-hover: linear-gradient(
-    135deg,
-    var(--violet-400) 0%,
-    var(--magenta-400) 55%,
-    var(--cyan-400) 120%
-  );
-  /* Simpler violet→cyan sweep used by buttons. */
-  /* Button gradient. Stops stay at violet-600 or darker so white label text
-     keeps a >= 4.5:1 contrast ratio (violet-500 and the bright cyan fail AA
-     under white). The bright violet->cyan sweep lives in --gradient-aurora for
-     decorative, non-text use only. */
-  --gradient-violet: linear-gradient(135deg, var(--violet-600) 0%, var(--violet-800) 100%);
-  --gradient-violet-hover: linear-gradient(135deg, var(--violet-600) 0%, var(--violet-700) 100%);
-
-  /* Legacy "fire" names → now cool aurora gradients (aliases). */
-  --gradient-fire: var(--gradient-aurora);
-  --gradient-fire-hover: var(--gradient-aurora-hover);
-  --gradient-amber: var(--gradient-violet);
-
-  /* Legacy aliases kept so existing views/main.css keep resolving. */
-  --color-primary-green: var(--violet-500);
-  --color-secondary-teal: var(--cyan-500);
-  --color-white: #ffffff;
+  --ease: cubic-bezier(0.2, 0, 0, 1);
+  --transition-fast: 120ms var(--ease);
+  --transition: 160ms var(--ease);
+  --brand: #ff641a;
+  --brand-strong: #ff8b52;
+  --brand-soft: #2d1c14;
+  --color-background: #111110;
+  --color-sidebar: #151514;
+  --color-background-soft: #191918;
+  --color-background-mute: #222220;
+  --color-surface-raised: #1d1d1b;
+  --color-border: #343431;
+  --color-border-hover: #707069;
+  --color-heading: #f5f5f0;
+  --color-text: #deded8;
+  --color-text-soft: #b0b0a7;
+  --color-text-mute: #a0a098;
+  --color-link: #ff8b52;
+  --color-link-hover: #ffad85;
+  --hue-success: #70c99b;
+  --hue-success-soft: #193528;
+  --hue-warning: #e6b96a;
+  --hue-warning-soft: #33291a;
+  --hue-danger: #ff9690;
+  --hue-danger-soft: #3a2020;
+  --hue-info: #9cbfff;
+  --hue-info-soft: #202d45;
+  --shadow-ring: 0 0 0 3px #ff641a30;
+  --box-shadow-container: 0 4px 16px #0000000a;
+  --box-shadow-card: none;
+  --box-shadow-button: none;
+  /* Existing tool views share these surface and action roles. No blur or gradient. */
+  --glass-fill: var(--color-background-soft);
+  --glass-fill-strong: var(--color-surface-raised);
+  --glass-border: var(--color-border);
+  --glass-shadow: none;
+  --glow-aurora: none;
+  --glow-fire: none;
+  --gradient-violet: #b94000;
+  --gradient-violet-hover: #a53700;
+  --gradient-fire: var(--brand);
+  --gradient-fire-hover: var(--gradient-violet-hover);
   --gradient-button: var(--gradient-violet);
   --gradient-button-hover: var(--gradient-violet-hover);
-
-  /* Brand accessors used by components. Old --ember-* names aliased to violet
-     so any leftover reference keeps resolving to the new accent. */
-  --ember-300: var(--violet-300);
-  --ember-400: var(--violet-400);
-  --ember-500: var(--violet-500);
-  --ember-600: var(--violet-600);
-  --ember-700: var(--violet-700);
-  --amber-400: var(--cyan-400);
-  --amber-500: var(--cyan-500);
-
-  --brand: var(--violet-500);
-  --brand-strong: var(--violet-400);
-  --brand-soft: rgba(124, 92, 255, 0.15);
-
-  /* Secondary (cyan) accessors for dual-tone accents. */
-  --accent-2: var(--cyan-400);
-  --accent-2-soft: rgba(56, 217, 240, 0.14);
-
-  --section-gap: 120px;
-
-  /* Motion — keep the existing ease so views feel consistent. */
-  --ease: cubic-bezier(0.22, 1, 0.36, 1);
-  --transition-fast: 0.15s var(--ease);
-  --transition: 0.25s var(--ease);
-
-  /* ------------------------------------------------------------------ *
-   * Glass system — reusable frosted-panel tokens.
-   * Tuned per theme below; these are the shared knobs.
-   * ------------------------------------------------------------------ */
-  --glass-blur: 24px;
-  --glass-saturate: 170%;
-}
-
-/*
- * Dark theme — the hero / default look.
- *
- * IMPORTANT: dark is the DEFAULT now. The bare :root carries the dark values so
- * the app is dark before any JS runs. App.vue sets data-theme="dark"|"light";
- * the explicit [data-theme='dark'] block below simply re-asserts these values so
- * toggling back to dark is unambiguous.
- */
-:root {
-  /* Surfaces. Backgrounds are deliberately semi-opaque-ready: the aurora layer
-     lives behind everything, so panels lean on translucency + blur. */
-  --color-background: var(--ink-950);
-  --color-background-soft: rgba(255, 255, 255, 0.045);
-  --color-background-mute: rgba(255, 255, 255, 0.07);
-  --color-surface-raised: rgba(255, 255, 255, 0.06);
-
-  --color-border: rgba(255, 255, 255, 0.1);
-  --color-border-hover: rgba(255, 255, 255, 0.22);
-
-  --color-heading: #f4f3ff;
-  --color-text: #cfcde0;
-  --color-text-soft: #9d9bb5;
-  --color-text-mute: #8884a6;
-
-  --color-link: var(--violet-300);
-  --color-link-hover: var(--cyan-300);
-
-  /* Glass surface composition (dark): faint white fill, top-lit hairline,
-     soft outer shadow plus an inner top highlight for the "lit edge" look. */
-  --glass-fill: rgba(255, 255, 255, 0.06);
-  --glass-fill-strong: rgba(255, 255, 255, 0.09);
-  --glass-border: rgba(255, 255, 255, 0.14);
-  --glass-highlight: rgba(255, 255, 255, 0.5);
-  --glass-shadow:
-    0 1px 0 0 rgba(255, 255, 255, 0.06) inset, 0 18px 50px -20px rgba(0, 0, 0, 0.75),
-    0 2px 8px -4px rgba(0, 0, 0, 0.5);
-
-  /* Box-shadow roles (kept names). Now glass-grade depth. */
-  --box-shadow-container:
-    0 1px 0 0 rgba(255, 255, 255, 0.05) inset, 0 24px 60px -24px rgba(0, 0, 0, 0.8);
-  --box-shadow-card:
-    0 1px 0 0 rgba(255, 255, 255, 0.05) inset, 0 14px 40px -18px rgba(0, 0, 0, 0.7);
-  /* Button shadow now glows violet instead of orange. */
-  --box-shadow-button: 0 8px 26px -8px rgba(124, 92, 255, 0.6);
-  /* Focus ring — soft violet halo. */
-  --shadow-ring: 0 0 0 3px rgba(124, 92, 255, 0.32);
-
-  /* Soft neon glow used at panel tops / hero. Cool, not orange. */
-  --glow-fire: radial-gradient(60% 80% at 50% 0%, rgba(124, 92, 255, 0.14) 0%, transparent 70%);
-  --glow-aurora: var(--glow-fire);
-
+  --gradient-amber: var(--gradient-violet);
+  --ember-300: #ffad85;
+  --ember-400: var(--brand-strong);
+  --ember-500: var(--brand);
+  --ember-600: #b94000;
+  --ember-700: #a53700;
+  --violet-400: var(--brand-strong);
+  --violet-500: var(--brand);
+  --violet-600: #b94000;
+  --violet-700: #a53700;
+  --accent-2: var(--brand-strong);
+  --accent-2-soft: var(--brand-soft);
+  --color-primary-green: var(--brand);
+  --color-secondary-teal: var(--brand-strong);
+  --color-white: #ffffff;
   color-scheme: dark;
 }
 
-/* Explicit dark re-assertion (when App.vue sets data-theme="dark"). */
-:root[data-theme='dark'] {
-  --color-background: var(--ink-950);
-  --color-background-soft: rgba(255, 255, 255, 0.045);
-  --color-background-mute: rgba(255, 255, 255, 0.07);
-  --color-surface-raised: rgba(255, 255, 255, 0.06);
-
-  --color-border: rgba(255, 255, 255, 0.1);
-  --color-border-hover: rgba(255, 255, 255, 0.22);
-
-  --color-heading: #f4f3ff;
-  --color-text: #cfcde0;
-  --color-text-soft: #9d9bb5;
-  --color-text-mute: #8884a6;
-
-  --color-link: var(--violet-300);
-  --color-link-hover: var(--cyan-300);
-
-  --glass-fill: rgba(255, 255, 255, 0.06);
-  --glass-fill-strong: rgba(255, 255, 255, 0.09);
-  --glass-border: rgba(255, 255, 255, 0.14);
-  --glass-highlight: rgba(255, 255, 255, 0.5);
-  --glass-shadow:
-    0 1px 0 0 rgba(255, 255, 255, 0.06) inset, 0 18px 50px -20px rgba(0, 0, 0, 0.75),
-    0 2px 8px -4px rgba(0, 0, 0, 0.5);
-
-  --box-shadow-container:
-    0 1px 0 0 rgba(255, 255, 255, 0.05) inset, 0 24px 60px -24px rgba(0, 0, 0, 0.8);
-  --box-shadow-card:
-    0 1px 0 0 rgba(255, 255, 255, 0.05) inset, 0 14px 40px -18px rgba(0, 0, 0, 0.7);
-  --box-shadow-button: 0 8px 26px -8px rgba(124, 92, 255, 0.6);
-  --shadow-ring: 0 0 0 3px rgba(124, 92, 255, 0.32);
-
-  --glow-fire: radial-gradient(60% 80% at 50% 0%, rgba(124, 92, 255, 0.14) 0%, transparent 70%);
-  --glow-aurora: var(--glow-fire);
-
-  color-scheme: dark;
-}
-
-/*
- * Light theme — secondary variant. Still reads as glass, but over a near-white
- * aurora: frosted panels darken the bright canvas instead of lightening a dark
- * one. Activated by data-theme="light" on <html>.
- */
 :root[data-theme='light'] {
-  --color-background: var(--frost-50);
-  --color-background-soft: rgba(255, 255, 255, 0.6);
-  --color-background-mute: rgba(20, 22, 40, 0.05);
-  --color-surface-raised: rgba(255, 255, 255, 0.7);
-
-  --color-border: rgba(30, 32, 60, 0.1);
-  --color-border-hover: rgba(30, 32, 60, 0.22);
-
-  --color-heading: var(--frost-800);
-  --color-text: var(--frost-700);
-  --color-text-soft: var(--frost-600);
-  --color-text-mute: #6c7081;
-
-  --color-link: var(--violet-600);
-  --color-link-hover: var(--violet-700);
-
-  /* Glass surface composition (light): translucent white over the bright
-     aurora, with a subtle dark hairline and gentle shadow. */
-  --glass-fill: rgba(255, 255, 255, 0.62);
-  --glass-fill-strong: rgba(255, 255, 255, 0.78);
-  --glass-border: rgba(255, 255, 255, 0.7);
-  --glass-highlight: rgba(255, 255, 255, 0.9);
-  --glass-shadow:
-    0 1px 0 0 rgba(255, 255, 255, 0.7) inset, 0 18px 45px -22px rgba(40, 30, 80, 0.28),
-    0 2px 8px -4px rgba(40, 30, 80, 0.12);
-
-  --box-shadow-container:
-    0 1px 0 0 rgba(255, 255, 255, 0.6) inset, 0 20px 50px -24px rgba(40, 30, 80, 0.25);
-  --box-shadow-card:
-    0 1px 0 0 rgba(255, 255, 255, 0.6) inset, 0 12px 34px -18px rgba(40, 30, 80, 0.22);
-  --box-shadow-button: 0 8px 22px -8px rgba(124, 92, 255, 0.45);
-  --shadow-ring: 0 0 0 3px rgba(124, 92, 255, 0.22);
-
-  --glow-fire: radial-gradient(60% 80% at 50% 0%, rgba(124, 92, 255, 0.1) 0%, transparent 70%);
-  --glow-aurora: var(--glow-fire);
-
-  /* Lighter brand-soft so chips stay readable on a bright canvas. */
-  --brand-soft: rgba(124, 92, 255, 0.12);
-
+  --brand: #b94000;
+  --brand-strong: #ad3b00;
+  --brand-soft: #fff0e7;
+  --color-background: #fcfcfa;
+  --color-sidebar: #f7f7f4;
+  --color-background-soft: #ffffff;
+  --color-background-mute: #f1f1ed;
+  --color-surface-raised: #f7f7f4;
+  --color-border: #deded7;
+  --color-border-hover: #87877d;
+  --color-heading: #242421;
+  --color-text: #3d3d37;
+  --color-text-soft: #64645b;
+  --color-text-mute: #6b6b62;
+  --color-link: #ad3b00;
+  --color-link-hover: #8a2f00;
+  --hue-success: #20774b;
+  --hue-success-soft: #eaf5ee;
+  --hue-warning: #8a5800;
+  --hue-warning-soft: #fff6e6;
+  --hue-danger: #b42f2f;
+  --hue-danger-soft: #fff0ef;
+  --hue-info: #315f9f;
+  --hue-info-soft: #edf3fc;
   color-scheme: light;
 }
 
-/*
- * Global reset. Border-box sizing, zeroed margins, normalized font weight.
- */
 *,
 *::before,
 *::after {
   box-sizing: border-box;
-  margin: 0;
-  font-weight: normal;
 }
-
-/*
- * Document base. The near-black (or near-white) canvas sits here; the animated
- * aurora layer is painted by App.vue behind the content. A smooth transition
- * keeps theme toggles graceful.
- */
 body {
-  min-height: 100vh;
+  margin: 0;
+  min-width: 320px;
   color: var(--color-text);
   background: var(--color-background);
-  transition:
-    color var(--transition),
-    background-color var(--transition);
-  line-height: 1.6;
-  font-family: var(--font-sans);
-  font-size: 15px;
-  text-rendering: optimizeLegibility;
+  font: 14px/1.5 var(--font-sans);
   -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
 }
-
-/*
- * Headings inherit the heading color and a tighter, more confident tracking.
- */
+h1,
+h2,
+h3,
+h4,
+p {
+  margin: 0;
+}
 h1,
 h2,
 h3,
 h4 {
   color: var(--color-heading);
-  font-weight: 700;
-  line-height: 1.2;
-  letter-spacing: -0.02em;
+  font-weight: 600;
+  line-height: 1.3;
+  letter-spacing: -0.025em;
 }
-
-/* Links default to the brand link color with a quick hover. */
 a {
   color: var(--color-link);
   text-decoration: none;
-  transition: color var(--transition-fast);
 }
-
 a:hover {
   color: var(--color-link-hover);
 }
-
-/* Inline code / monospaced content reads as such everywhere. */
 code,
-kbd,
 pre,
-samp {
+kbd {
   font-family: var(--font-mono);
 }
-
-/* ---------------------------------------------------------------------------
- * Glass utility — reusable frosted panel.
- *
- * Apply `.glass` to any surface to get the signature look: a translucent fill,
- * heavy backdrop blur + saturation, a top-lit hairline border (lighter at the
- * top via a gradient-masked pseudo-element), and a soft outer shadow with an
- * inner top highlight. Stacks cleanly with radius/padding utilities.
- * ------------------------------------------------------------------------- */
-.glass {
-  position: relative;
-  background: var(--glass-fill);
-  /* Prefixed for Safari; saturate boosts the aurora colors showing through. */
-  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
-  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
-  border: 1px solid var(--glass-border);
-  box-shadow: var(--glass-shadow);
-}
-
-/*
- * Top-lit hairline. A 1px gradient border that is brighter at the top edge to
- * fake a light source above the panel. Implemented with a masked pseudo-element
- * so it overlays the real border without affecting layout.
- */
-.glass::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  padding: 1px;
-  background: linear-gradient(180deg, var(--glass-highlight) 0%, transparent 40%, transparent 100%);
-  /* Mask trick: show only the 1px ring, punch out the interior. */
-  -webkit-mask:
-    linear-gradient(#000 0 0) content-box,
-    linear-gradient(#000 0 0);
-  -webkit-mask-composite: xor;
-  mask:
-    linear-gradient(#000 0 0) content-box,
-    linear-gradient(#000 0 0);
-  mask-composite: exclude;
-  opacity: 0.6;
-  pointer-events: none;
-}
-
-/*
- * Global form control styling. Unified across both themes. Inputs are glassy:
- * translucent fill so the aurora subtly tints them, cool focus halo.
- */
+button,
 input,
-textarea,
-select {
-  font-family: inherit;
-  font-size: 0.95rem;
-  color: var(--color-text);
-  background-color: var(--color-background-soft);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
-  padding: 0.6rem 0.8rem;
-  -webkit-backdrop-filter: blur(6px);
-  backdrop-filter: blur(6px);
-  transition:
-    border-color var(--transition-fast),
-    box-shadow var(--transition-fast),
-    background-color var(--transition-fast);
+select,
+textarea {
+  font: inherit;
 }
-
+button {
+  cursor: pointer;
+}
+input,
+select,
+textarea {
+  color: var(--color-text);
+  background: var(--color-background-soft);
+  border: 1px solid var(--color-border-hover);
+  border-radius: var(--radius-sm);
+  padding: 9px 11px;
+  max-width: 100%;
+}
 input::placeholder,
 textarea::placeholder {
   color: var(--color-text-mute);
 }
-
-input:focus,
-textarea:focus,
-select:focus {
-  outline: none;
-  border-color: var(--violet-500);
-  box-shadow: var(--shadow-ring);
+textarea {
+  resize: vertical;
 }
-
-/* Checkboxes and radios adopt the brand accent. */
 input[type='checkbox'],
 input[type='radio'] {
-  accent-color: var(--violet-500);
+  accent-color: var(--brand);
 }
-
-/* Buttons get a pointer and consistent typography by default. */
-button {
-  font-family: inherit;
-  cursor: pointer;
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: var(--brand);
+  box-shadow: var(--shadow-ring);
 }
-
-/* Visible, on-brand keyboard focus for accessibility (soft violet halo). */
 :focus-visible {
-  outline: 2px solid var(--violet-400);
-  outline-offset: 2px;
+  outline: 2px solid var(--brand);
+  outline-offset: 3px;
 }
-
-/*
- * Custom scrollbars tuned to the cool neutrals (WebKit + Firefox).
- */
-* {
-  scrollbar-width: thin;
-  scrollbar-color: var(--color-border-hover) transparent;
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
 }
-
-*::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
+.glass {
+  background: var(--color-background-soft);
+  border: 1px solid var(--color-border);
 }
-
-*::-webkit-scrollbar-track {
-  background: transparent;
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
 }
-
-*::-webkit-scrollbar-thumb {
-  background-color: var(--color-border-hover);
-  border-radius: var(--radius-pill);
-  border: 2px solid transparent;
-  background-clip: content-box;
-}
-
-*::-webkit-scrollbar-thumb:hover {
-  background-color: var(--color-text-mute);
+/* Pause task spinners when the page is hidden; no decorative idle animations exist. */
+html[data-page-hidden] *,
+html[data-page-hidden] *::before,
+html[data-page-hidden] *::after {
+  animation-play-state: paused !important;
 }

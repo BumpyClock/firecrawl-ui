@@ -16,27 +16,41 @@
       <form class="scrape-config-form" @submit.prevent="handleSubmit">
         <div class="form-group">
           <label for="url">URL:</label>
-          <input id="url" v-model="formData.url" type="text" required />
+          <input
+            id="url"
+            v-model="formData.url"
+            type="url"
+            placeholder="https://example.com"
+            required
+          />
         </div>
 
-        <div class="form-group">
-          <label for="formats">Output Formats:</label>
-          <select id="formats" v-model="formData.scrapeOptions.formats" multiple>
-            <option value="markdown">Markdown</option>
-            <option value="html">HTML</option>
-            <option value="rawHtml">Raw HTML</option>
-            <option value="links">Links</option>
-            <option value="images">Images</option>
-            <option value="summary">Summary †</option>
-            <option value="screenshot">Screenshot (Viewport)</option>
-            <option value="screenshot@fullPage">Screenshot (Full Page)</option>
-            <option value="json">JSON (Structured Extraction) †</option>
-            <option value="attributes">Attributes</option>
-            <option value="branding">Branding *</option>
-            <option value="changeTracking">Change Tracking (Requires Markdown) *</option>
-          </select>
-          <small>Select one or more formats.</small>
-        </div>
+        <fieldset id="formats" class="format-group form-group">
+          <legend>Output Formats</legend>
+          <div class="format-grid">
+            <label v-for="format in primaryFormats" :key="format.value" class="format-choice">
+              <input
+                type="checkbox"
+                v-model="formData.scrapeOptions.formats"
+                :value="format.value"
+              />
+              {{ format.label }}
+            </label>
+          </div>
+          <details class="more-formats">
+            <summary>More formats</summary>
+            <div class="format-grid">
+              <label v-for="format in moreFormats" :key="format.value" class="format-choice">
+                <input
+                  type="checkbox"
+                  v-model="formData.scrapeOptions.formats"
+                  :value="format.value"
+                />
+                {{ format.label }}
+              </label>
+            </div>
+          </details>
+        </fieldset>
 
         <!-- Change Tracking Options (conditional) -->
         <div v-if="formData.scrapeOptions.formats.includes('changeTracking')" class="form-group">
@@ -60,14 +74,9 @@
           <small>Frequency to check for changes.</small>
         </div>
 
-        <fieldset class="form-group options-fieldset">
-          <legend
-            class="collapsible-header"
-            @click="isScrapeOptionsCollapsed = !isScrapeOptionsCollapsed"
-          >
-            Scrape Options
-          </legend>
-          <div v-show="!isScrapeOptionsCollapsed">
+        <details class="form-group options-fieldset">
+          <summary>Scrape Options</summary>
+          <div>
             <label>
               <input type="checkbox" v-model="formData.scrapeOptions.onlyMainContent" />
               Only Main Content (exclude headers, footers, etc.)
@@ -95,16 +104,11 @@
               />
             </div>
           </div>
-        </fieldset>
+        </details>
 
-        <fieldset class="form-group options-fieldset">
-          <legend
-            class="collapsible-header"
-            @click="isPageOptionsCollapsed = !isPageOptionsCollapsed"
-          >
-            Page Options
-          </legend>
-          <div v-show="!isPageOptionsCollapsed">
+        <details class="form-group options-fieldset">
+          <summary>Page Options</summary>
+          <div>
             <div class="grid-layout">
               <div class="form-group">
                 <label for="waitFor">Wait For (ms):</label>
@@ -289,7 +293,7 @@
               <button type="button" class="action-add" @click="addAction">Add Action</button>
             </div>
           </div>
-        </fieldset>
+        </details>
 
         <fieldset
           v-if="formData.scrapeOptions.formats.includes('json')"
@@ -348,7 +352,9 @@
           Ollama configured.
         </p>
 
-        <button type="submit" class="primary-button">Scrape</button>
+        <button type="submit" class="primary-button" :disabled="loading">
+          {{ loading ? 'Scraping…' : 'Scrape' }}<span aria-hidden="true">→</span>
+        </button>
       </form>
     </template>
 
@@ -385,10 +391,10 @@
 
     <!-- Response actions: copy current tab payload + download menu -->
     <template #response-actions="{ activeTab }">
-      <CopyButton v-if="activeTab === 'json'" :text="resultJson" label="Copy JSON" />
-      <CopyButton v-else-if="activeTab === 'markdown'" :text="markdownContent" label="Copy" />
-      <CopyButton v-else-if="activeTab === 'html'" :text="htmlContent" label="Copy" />
-      <CopyButton v-else-if="activeTab === 'links'" :text="linksContent" label="Copy" />
+      <CopyButton v-if="activeTab === 'preview'" :text="previewContent" label="Copy" />
+      <button type="button" class="download-result" @click="downloadResult('json')">
+        Download JSON
+      </button>
     </template>
   </PlaygroundLayout>
 </template>
@@ -525,6 +531,22 @@ export default defineComponent({
   setup() {
     const router = useRouter();
     const route = useRoute();
+    const primaryFormats = [
+      { value: 'markdown', label: 'Markdown' },
+      { value: 'html', label: 'HTML' },
+      { value: 'links', label: 'Links' },
+      { value: 'json', label: 'JSON †' },
+    ];
+    const moreFormats = [
+      { value: 'rawHtml', label: 'Raw HTML' },
+      { value: 'images', label: 'Images' },
+      { value: 'summary', label: 'Summary †' },
+      { value: 'screenshot', label: 'Screenshot' },
+      { value: 'screenshot@fullPage', label: 'Full-page screenshot' },
+      { value: 'attributes', label: 'Attributes' },
+      { value: 'branding', label: 'Branding *' },
+      { value: 'changeTracking', label: 'Change Tracking *' },
+    ];
     // Inject the API client for scraping operations.
     const api = inject('api') as { scraping: FirecrawlScrapingApi };
 
@@ -578,17 +600,6 @@ export default defineComponent({
     if (_initialUrl) {
       formData.value.url = String(_initialUrl);
     }
-
-    /**
-     * Reactive state for collapsing/expanding scrape options section.
-     * @type {Ref<boolean>}
-     */
-    const isScrapeOptionsCollapsed = ref(true);
-    /**
-     * Reactive state for collapsing/expanding page options section.
-     * @type {Ref<boolean>}
-     */
-    const isPageOptionsCollapsed = ref(true);
 
     /**
      * Reactive state indicating if a request is in progress.
@@ -768,6 +779,7 @@ export default defineComponent({
      * @returns {Promise<void>}
      */
     const handleSubmit = async (): Promise<void> => {
+      if (loading.value) return;
       if (!isValidUrl(formData.value.url)) {
         error.value = 'Please enter a valid URL (e.g., https://example.com)';
         return;
@@ -898,13 +910,12 @@ export default defineComponent({
       try {
         loading.value = true;
         error.value = '';
-        console.log('Sending scrape request:', JSON.stringify(requestPayload, null, 2));
         const response = await api.scraping.scrapeAndExtractFromUrl(requestPayload);
         result.value = response.data;
       } catch (err: unknown) {
         if (err instanceof Error) {
           if (err.message.includes('401')) {
-            router.push({ name: 'ApiConfig' });
+            router.push({ name: 'api-config' });
             return;
           }
           error.value = err.message.includes('404')
@@ -938,7 +949,8 @@ export default defineComponent({
       };
 
       const key = formatMap[format] ?? format;
-      const data: unknown = result.value.data[key as keyof typeof result.value.data];
+      const data: unknown =
+        format === 'json' ? result.value : result.value.data[key as keyof typeof result.value.data];
 
       // Handle screenshot download separately as it's a data URL.
       if (format.startsWith('screenshot') && typeof data === 'string') {
@@ -1116,6 +1128,8 @@ export default defineComponent({
     };
 
     return {
+      primaryFormats,
+      moreFormats,
       formData,
       loading,
       headersJson,
@@ -1133,8 +1147,6 @@ export default defineComponent({
       actionTypes,
       addAction,
       removeAction,
-      isScrapeOptionsCollapsed,
-      isPageOptionsCollapsed,
       // Playground-specific reactive helpers.
       durationMs,
       responseTabs,
@@ -1154,6 +1166,43 @@ export default defineComponent({
 </script>
 
 <style scoped>
+.format-group {
+  border: 0;
+  padding: 0;
+  min-width: 0;
+}
+.format-group legend {
+  font-size: 12px;
+  font-weight: 550;
+  padding: 0;
+  margin-bottom: 8px;
+}
+.format-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px 12px;
+}
+.format-grid .format-choice {
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  padding: 9px;
+  margin: 0;
+  font-size: 12px;
+  align-items: center;
+}
+.format-grid .format-choice:has(input:checked) {
+  border-color: var(--brand);
+  background: var(--brand-soft);
+}
+.more-formats summary {
+  font-size: 11px;
+  color: var(--color-text-soft);
+  cursor: pointer;
+  padding: 12px 0 0;
+}
+.more-formats[open] summary {
+  padding-bottom: 12px;
+}
 /* ---------------------------------------------------------------------------
  * Form layout — spacing and field groups.
  * --------------------------------------------------------------------------- */
@@ -1161,49 +1210,19 @@ export default defineComponent({
   margin-bottom: 1.25rem;
 }
 
-/* ---------------------------------------------------------------------------
- * Collapsible option fieldsets — frosted glass cards so they read as nested
- * panels floating over the request pane aurora. Hover lifts the card gently.
- * --------------------------------------------------------------------------- */
-.options-fieldset {
-  /* Glass surface: translucent fill + heavy blur to show the aurora through. */
-  background: var(--glass-fill);
-  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
-  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
-  border: 1px solid var(--glass-border);
-  padding: 1rem;
-  border-radius: var(--radius-md);
-  margin-bottom: 1.25rem;
-  transition:
-    border-color var(--transition),
-    box-shadow var(--transition),
-    transform var(--transition);
-}
-
-.options-fieldset:hover {
-  /* Subtle lift so nested panels feel interactive, not static. */
-  border-color: var(--color-border-hover);
-  box-shadow: var(--box-shadow-card);
-  transform: translateY(-2px);
+.download-result {
+  padding: 6px 9px;
+  font-size: 11px;
+  border: 1px solid var(--color-border-hover);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-text);
 }
 
 .options-fieldset legend {
   font-weight: 700;
   padding: 0 0.4rem;
   color: var(--color-heading);
-}
-
-/* ---------------------------------------------------------------------------
- * Collapsible legend header — pointer + violet hover to signal interactivity.
- * --------------------------------------------------------------------------- */
-.collapsible-header {
-  cursor: pointer;
-  user-select: none;
-  transition: color var(--transition-fast);
-}
-
-.collapsible-header:hover {
-  color: var(--brand-strong);
 }
 
 /* ---------------------------------------------------------------------------
@@ -1312,10 +1331,6 @@ export default defineComponent({
   border-color: var(--hue-danger);
 }
 
-/* ---------------------------------------------------------------------------
- * Preview pane — monospace dump of the scraped content.
- * Glass fill keeps the aurora visible through the content area.
- * --------------------------------------------------------------------------- */
 .preview-pane {
   height: 100%;
   overflow: auto;
@@ -1330,7 +1345,7 @@ export default defineComponent({
   font-size: 0.84rem;
   line-height: 1.6;
   color: var(--color-text);
-  /* Translucent so the aurora tints the code surface. */
+
   background: var(--glass-fill);
 }
 
@@ -1344,7 +1359,7 @@ export default defineComponent({
   font-size: 0.92rem;
   line-height: 1.7;
   word-wrap: break-word;
-  /* Glass fill keeps the aurora visible behind the rendered content. */
+
   background: var(--glass-fill);
 }
 
@@ -1472,10 +1487,6 @@ export default defineComponent({
   background: var(--color-background-soft);
 }
 
-/* ---------------------------------------------------------------------------
- * Screenshot pane — centered, scrollable image surface.
- * Same glass fill treatment as the preview pane for visual cohesion.
- * --------------------------------------------------------------------------- */
 .screenshot-pane {
   height: 100%;
   overflow: auto;
@@ -1483,14 +1494,14 @@ export default defineComponent({
   display: flex;
   align-items: flex-start;
   justify-content: center;
-  /* Glass fill keeps the aurora visible behind the screenshot. */
+
   background: var(--glass-fill);
 }
 
 .screenshot-pane img {
   max-width: 100%;
   height: auto;
-  /* Glass-bordered image frame matches the panel language. */
+
   border: 1px solid var(--glass-border);
   border-radius: var(--radius-sm);
 }

@@ -32,3 +32,6 @@ coverage
 # Agent / MCP tooling scratch dirs
 .serena/
 .playwright-mcp/
+
+# Local test-run output
+.vitest/

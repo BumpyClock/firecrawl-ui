@@ -80,6 +80,14 @@ const props = withDefaults(
 const activeTab = ref<string>(props.tabs[0]?.key ?? 'default');
 
 // Keep the active tab valid if the tab set changes (e.g. async tab lists).
+// A newly completed response opens its first useful view, rather than the idle JSON tab.
+watch(
+  () => props.hasResult,
+  (hasResult) => {
+    if (hasResult) activeTab.value = props.tabs[0]?.key ?? 'default';
+  },
+);
+
 watch(
   () => props.tabs,
   (tabs) => {
@@ -133,7 +141,7 @@ function selectTab(key: string): void {
       </div>
 
       <!-- RESPONSE pane -->
-      <div class="pg-pane pg-response">
+      <div class="pg-pane pg-response" aria-label="Response" :aria-busy="running">
         <div class="pg-response-head">
           <div class="pg-tabs" role="group" aria-label="Response view">
             <button
@@ -148,20 +156,23 @@ function selectTab(key: string): void {
               {{ tab.label }}
             </button>
           </div>
-          <div v-if="$slots['response-actions']" class="pg-response-actions">
+          <div
+            v-if="hasResult && !running && !error && $slots['response-actions']"
+            class="pg-response-actions"
+          >
             <slot name="response-actions" :active-tab="activeTab" />
           </div>
         </div>
 
         <div class="pg-response-body">
           <!-- Loading -->
-          <div v-if="running" class="pg-state">
+          <div v-if="running" class="pg-state" role="status">
             <span class="pg-spinner" aria-hidden="true"></span>
             <p>Running request…</p>
           </div>
 
           <!-- Error -->
-          <div v-else-if="error" class="pg-state pg-state--error">
+          <div v-else-if="error" class="pg-state pg-state--error" role="alert">
             <svg viewBox="0 0 24 24" width="30" height="30" aria-hidden="true">
               <circle cx="12" cy="12" r="9" />
               <path d="M12 8v5M12 16h.01" />
@@ -177,7 +188,8 @@ function selectTab(key: string): void {
               <path d="M4 7h16v12a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1z" />
               <path d="M8 12h8M8 16h5" />
             </svg>
-            <p>{{ emptyHint }}</p>
+            <p class="pg-state-title">Your results will appear here</p>
+            <p class="pg-state-detail">{{ emptyHint }}</p>
           </div>
 
           <!-- Result -->
@@ -187,7 +199,13 @@ function selectTab(key: string): void {
         </div>
 
         <!-- Status bar -->
-        <div class="pg-status" :class="`pg-status--${statusType}`">
+        <div
+          class="pg-status"
+          :class="`pg-status--${statusType}`"
+          role="status"
+          aria-live="polite"
+          aria-atomic="true"
+        >
           <span class="pg-status-dot" aria-hidden="true"></span>
           <span class="pg-status-text">{{
             running ? 'Running…' : (status ?? (error ? 'Error' : 'Idle'))
@@ -203,14 +221,15 @@ function selectTab(key: string): void {
 .playground {
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
+  gap: 24px;
   /* width:100% so the panel fills the available width up to max-width; without
      it the auto side margins in the flex column collapse it to content width
      (~955px), leaving the response pane cramped and the split non-fixed. */
   width: 100%;
-  max-width: 1300px;
+  max-width: 1600px;
   margin: 0 auto;
-  height: 100%;
+  height: calc(100dvh - 128px);
+  min-height: 600px;
 }
 
 /* Header */
@@ -223,14 +242,14 @@ function selectTab(key: string): void {
 }
 
 .pg-heading h1 {
-  font-size: 1.6rem;
-  font-weight: 800;
+  font-size: 24px;
+  font-weight: 600;
   letter-spacing: -0.02em;
 }
 
 .pg-subtitle {
   color: var(--color-text-soft);
-  font-size: 0.95rem;
+  font-size: 13px;
   margin-top: 0.2rem;
 }
 
@@ -246,7 +265,7 @@ function selectTab(key: string): void {
   /* Fixed request column + response taking the rest, so the request pane keeps
      a stable width instead of flexing between 340 and 460px as the window
      resizes. minmax(0, 1fr) lets the response pane shrink without overflow. */
-  grid-template-columns: 440px minmax(0, 1fr);
+  grid-template-columns: minmax(300px, 360px) minmax(0, 1fr);
   gap: 1.25rem;
   flex: 1;
   min-height: 0;
@@ -259,7 +278,7 @@ function selectTab(key: string): void {
   min-height: 0;
   background: var(--color-background-soft);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-md);
   box-shadow: var(--box-shadow-card);
   overflow: hidden;
 }
@@ -299,6 +318,7 @@ function selectTab(key: string): void {
   align-items: stretch;
   gap: 0.15rem;
   overflow-x: auto;
+  overflow-y: hidden;
 }
 
 .pg-tab {
@@ -417,7 +437,7 @@ function selectTab(key: string): void {
 
 @media (prefers-reduced-motion: reduce) {
   .pg-spinner {
-    animation-duration: 1.6s;
+    animation: none;
   }
 }
 
@@ -463,7 +483,17 @@ function selectTab(key: string): void {
 }
 
 /* Responsive: stack request above response. */
-@media (max-width: 920px) {
+@media (max-width: 1050px) {
+  .playground {
+    height: auto;
+    min-height: 0;
+  }
+  .pg-response {
+    height: 560px;
+  }
+  .pg-pane-body {
+    overflow: visible;
+  }
   .pg-split {
     grid-template-columns: 1fr;
   }

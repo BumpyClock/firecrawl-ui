@@ -1,9 +1,21 @@
 <template>
   <div class="page-container billing-view">
-    <h2>Billing &amp; Credits</h2>
-    <p class="intro">Check the remaining Firecrawl credits available for your team.</p>
+    <h1>Billing &amp; Credits</h1>
+    <p v-if="isCloud" class="intro">
+      Check the remaining Firecrawl credits available for your team.
+    </p>
+    <p v-else class="intro">
+      Firecrawl credit balances are a Cloud API feature. Your self-hosted server does not report
+      cloud credits. Hosting and AI-provider costs are managed separately.
+    </p>
 
-    <button type="button" class="primary-button" :disabled="loading" @click="fetchUsage">
+    <button
+      v-if="isCloud"
+      type="button"
+      class="primary-button"
+      :disabled="loading"
+      @click="fetchUsage"
+    >
       {{ loading ? 'Loading…' : 'Refresh credit usage' }}
     </button>
 
@@ -40,6 +52,10 @@
 
 <script setup lang="ts">
 import { ref, inject, onMounted } from 'vue';
+import { getApiConfig } from '@/config/api';
+
+/** Cloud billing is not available on the self-hosted API. */
+const isCloud = new URL(getApiConfig().basePath).hostname === 'api.firecrawl.dev';
 import type { CreditUsage, TokenUsage, FirecrawlBillingApi } from '@/services/firecrawl';
 
 /**
@@ -124,7 +140,9 @@ async function fetchUsage(): Promise<void> {
 }
 
 // Automatically load credit usage when the view is mounted.
-onMounted(fetchUsage);
+onMounted(() => {
+  if (isCloud) void fetchUsage();
+});
 </script>
 
 <style scoped>
@@ -135,7 +153,7 @@ onMounted(fetchUsage);
   padding: 1rem;
   border: 1px solid var(--color-border);
   border-radius: 8px;
-  font-family: Arial, sans-serif;
+  font-family: var(--font-sans);
 }
 
 /* Introductory description text. */

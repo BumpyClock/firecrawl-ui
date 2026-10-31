@@ -27,14 +27,9 @@
         </div>
 
         <!-- Crawler Options Section -->
-        <fieldset class="form-group options-fieldset">
-          <legend
-            class="collapsible-header"
-            @click="isCrawlerOptionsCollapsed = !isCrawlerOptionsCollapsed"
-          >
-            {{ crawlerOptionsArrow }} Crawler Options
-          </legend>
-          <div v-show="!isCrawlerOptionsCollapsed">
+        <details class="form-group options-fieldset">
+          <summary>Crawler Options</summary>
+          <div>
             <div class="grid-layout">
               <div class="form-group">
                 <label for="includes">Includes (Regex Patterns):</label>
@@ -153,17 +148,12 @@
               </label>
             </div>
           </div>
-        </fieldset>
+        </details>
 
         <!-- Scrape Options Section -->
-        <fieldset class="form-group options-fieldset">
-          <legend
-            class="collapsible-header"
-            @click="isScrapeOptionsCollapsed = !isScrapeOptionsCollapsed"
-          >
-            {{ scrapeOptionsArrow }} Scrape Options
-          </legend>
-          <div v-show="!isScrapeOptionsCollapsed">
+        <details class="form-group options-fieldset">
+          <summary>Scrape Options</summary>
+          <div>
             <div class="form-group">
               <label for="formats">Output Formats:</label>
               <select id="formats" v-model="formData.scrapeOptions.formats" multiple>
@@ -303,17 +293,12 @@
               ></textarea>
             </div>
           </div>
-        </fieldset>
+        </details>
 
         <!-- Webhook Options Section -->
-        <fieldset class="form-group options-fieldset">
-          <legend
-            class="collapsible-header"
-            @click="isWebhookOptionsCollapsed = !isWebhookOptionsCollapsed"
-          >
-            {{ webhookOptionsArrow }} Webhook Options (Optional)
-          </legend>
-          <div v-show="!isWebhookOptionsCollapsed">
+        <details class="form-group options-fieldset">
+          <summary>Webhook Options (Optional)</summary>
+          <div>
             <div class="grid-layout">
               <div class="form-group">
                 <label for="webhookUrl">Webhook URL:</label>
@@ -357,7 +342,7 @@
               </div>
             </div>
           </div>
-        </fieldset>
+        </details>
 
         <p class="api-note">
           * Available only on the official Firecrawl cloud API. These options may be ignored or
@@ -761,16 +746,8 @@ export default defineComponent({
     const jsonOptionsSchemaError = ref('');
     const changeTrackingSchemaError = ref('');
 
-    // State for collapsible sections
-    const isCrawlerOptionsCollapsed = ref(true);
-    const isScrapeOptionsCollapsed = ref(true);
-    const isWebhookOptionsCollapsed = ref(true);
     const useSubfolders = ref(false);
     const statusCheckInterval = ref(3);
-
-    const crawlerOptionsArrow = computed(() => (isCrawlerOptionsCollapsed.value ? '▶' : '▼'));
-    const scrapeOptionsArrow = computed(() => (isScrapeOptionsCollapsed.value ? '▶' : '▼'));
-    const webhookOptionsArrow = computed(() => (isWebhookOptionsCollapsed.value ? '▶' : '▼'));
 
     /**
      * Parses and validates regex patterns from the includes input.
@@ -1695,6 +1672,7 @@ export default defineComponent({
       }
 
       intervalId = setInterval(async () => {
+        if (document.hidden) return;
         try {
           // Call the actual API endpoint to get the crawl status
           const response = await api.crawling.getCrawlStatus(jobId);
@@ -1727,7 +1705,11 @@ export default defineComponent({
           }
 
           // Stop polling when completed or failed
-          if (data.status === 'completed' || data.status === 'failed') {
+          if (
+            data.status === 'completed' ||
+            data.status === 'failed' ||
+            data.status === 'cancelled'
+          ) {
             clearInterval(intervalId);
             intervalId = null; // Clear intervalId after clearing interval
             crawling.value = false; // Update crawling state
@@ -1762,7 +1744,7 @@ export default defineComponent({
         const response = await api.crawling.getCrawlStatus(crawl.id);
         crawl.status = response.data.status;
         saveHistory();
-        if (crawl.status !== 'completed' && crawl.status !== 'failed') {
+        if (crawl.status === 'scraping') {
           startHistoryPolling(crawl.id);
         }
       } catch (err) {
@@ -1779,6 +1761,7 @@ export default defineComponent({
     const startHistoryPolling = (id: string) => {
       stopHistoryPolling(id);
       historyIntervalIds[id] = setInterval(async () => {
+        if (document.hidden) return;
         const crawl = crawlHistory.value.find((c) => c.id === id);
         if (!crawl) {
           stopHistoryPolling(id);
@@ -1788,7 +1771,11 @@ export default defineComponent({
           const response = await api.crawling.getCrawlStatus(id);
           crawl.status = response.data.status;
           saveHistory();
-          if (crawl.status === 'completed' || crawl.status === 'failed') {
+          if (
+            crawl.status === 'completed' ||
+            crawl.status === 'failed' ||
+            crawl.status === 'cancelled'
+          ) {
             stopHistoryPolling(id);
           }
         } catch (err) {
@@ -1886,9 +1873,6 @@ export default defineComponent({
       activeCrawls,
       activeCrawlsError,
       loadActiveCrawls,
-      isCrawlerOptionsCollapsed,
-      isScrapeOptionsCollapsed,
-      isWebhookOptionsCollapsed,
       handleDownload,
       handleDownloadCompiledMarkdown,
       crawlHistory,
@@ -1898,9 +1882,6 @@ export default defineComponent({
       simulatedFiles,
       activeFormats,
       selectedFormats,
-      crawlerOptionsArrow,
-      scrapeOptionsArrow,
-      webhookOptionsArrow,
       useSubfolders,
       statusCheckInterval,
       clearHistory,
@@ -1939,49 +1920,10 @@ export default defineComponent({
   width: 100%;
 }
 
-/* ---------------------------------------------------------------------------
- * Collapsible option fieldsets — frosted glass cards that nest inside the
- * request pane. Hover-lift makes the collapsed/expanded state feel tactile.
- * --------------------------------------------------------------------------- */
-.options-fieldset {
-  /* Glass surface: translucent fill + heavy blur so the aurora shows through. */
-  background: var(--glass-fill);
-  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
-  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
-  border: 1px solid var(--glass-border);
-  padding: 1rem;
-  border-radius: var(--radius-md);
-  margin-bottom: 0;
-  transition:
-    border-color var(--transition),
-    box-shadow var(--transition),
-    transform var(--transition);
-}
-
-.options-fieldset:hover {
-  /* Gentle lift on hover to indicate the fieldset is interactive. */
-  border-color: var(--color-border-hover);
-  box-shadow: var(--box-shadow-card);
-  transform: translateY(-2px);
-}
-
 .options-fieldset legend {
   font-weight: 700;
   padding: 0 0.4rem;
   color: var(--color-heading);
-}
-
-/* ---------------------------------------------------------------------------
- * Collapsible legend — pointer cursor + violet hover to signal click-to-toggle.
- * --------------------------------------------------------------------------- */
-.collapsible-header {
-  cursor: pointer;
-  user-select: none;
-  transition: color var(--transition-fast);
-}
-
-.collapsible-header:hover {
-  color: var(--brand-strong);
 }
 
 /* Responsive grid for compact option pairs (e.g. max depth / limit). */
@@ -2049,24 +1991,16 @@ export default defineComponent({
   margin-bottom: 0.25rem;
 }
 
-/* ---------------------------------------------------------------------------
- * Progress bar — glass track with aurora gradient fill.
- * --------------------------------------------------------------------------- */
-
-/* Track: glass surface so the aurora tints the empty portion of the bar. */
 .progress-container {
   width: 100%;
-  /* Glass fill rather than opaque background so the aurora shows through. */
+
   background: var(--glass-fill);
-  -webkit-backdrop-filter: blur(8px);
-  backdrop-filter: blur(8px);
   border: 1px solid var(--glass-border);
   border-radius: var(--radius-pill);
   margin: 0.5rem 0;
   overflow: hidden;
 }
 
-/* Fill: violet→cyan aurora sweep to match the brand gradient. */
 .progress-bar {
   height: 14px;
   background: var(--gradient-violet);
@@ -2095,10 +2029,6 @@ export default defineComponent({
   margin-top: 0.75rem;
 }
 
-/* ---------------------------------------------------------------------------
- * Crawl error report: glass card tinted with the danger hue so a failing
- * crawl reads apart from the neutral status blocks above it.
- * --------------------------------------------------------------------------- */
 .crawl-errors-section {
   margin-top: 1.25rem;
   padding: 0.9rem 1rem;
@@ -2106,8 +2036,6 @@ export default defineComponent({
   border-left: 3px solid var(--hue-danger);
   border-radius: var(--radius-sm);
   background: var(--glass-fill);
-  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
-  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
 }
 
 .crawl-errors-section h4 {
@@ -2141,10 +2069,6 @@ export default defineComponent({
   color: var(--color-text-mute);
 }
 
-/* ---------------------------------------------------------------------------
- * Active crawls: same frosted rows as the history list, with a header row
- * carrying the manual refresh action.
- * --------------------------------------------------------------------------- */
 .active-crawls-section {
   margin-bottom: 1.5rem;
 }
@@ -2184,10 +2108,6 @@ export default defineComponent({
   color: var(--color-text-soft);
 }
 
-/* ---------------------------------------------------------------------------
- * Crawl history list — each item is a frosted glass row with hover-lift and
- * a violet halo so it reads like the interactive cards in HomeView.
- * --------------------------------------------------------------------------- */
 .history-list {
   list-style: none;
   padding: 0;
@@ -2203,10 +2123,8 @@ export default defineComponent({
   justify-content: space-between;
   gap: 0.5rem;
   padding: 0.6rem 0.8rem;
-  /* Frosted glass row: subtle fill + hairline border. */
+
   background: var(--glass-fill);
-  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
-  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
   border: 1px solid var(--glass-border);
   border-radius: var(--radius-sm);
   transition:
@@ -2216,19 +2134,13 @@ export default defineComponent({
 }
 
 .history-item:hover {
-  /* Lift + soft violet halo matches the HomeView tool-card hover style. */
   border-color: var(--color-border-hover);
-  box-shadow:
-    var(--box-shadow-card),
-    0 0 0 1px rgba(124, 92, 255, 0.2),
-    0 6px 24px -8px rgba(124, 92, 255, 0.4);
-  transform: translateY(-2px);
 }
 
 /* Highlight the currently selected history row with a brand-tinted background. */
 .selected-crawl {
   background: var(--brand-soft);
-  border-color: rgba(124, 92, 255, 0.35);
+  border-color: color-mix(in srgb, var(--brand) 35%, transparent);
 }
 
 .history-info {
@@ -2240,14 +2152,10 @@ export default defineComponent({
   white-space: nowrap;
 }
 
-/* ---------------------------------------------------------------------------
- * History and download action buttons — violet→cyan aurora sweep, consistent
- * with the primary-button style defined in main.css.
- * --------------------------------------------------------------------------- */
 .history-button {
   flex-shrink: 0;
   padding: 0.35rem 0.7rem;
-  /* Aurora gradient (violet→cyan) instead of the old fire/orange. */
+
   background: var(--gradient-violet);
   color: #fff;
   border: none;
@@ -2264,15 +2172,13 @@ export default defineComponent({
 
 .history-button:hover {
   background: var(--gradient-violet-hover);
-  box-shadow: 0 6px 20px -6px rgba(124, 92, 255, 0.6);
-  transform: translateY(-1px);
 }
 
 .download-button {
   padding: 0.4rem 0.8rem;
   font-size: 0.9rem;
   font-weight: 600;
-  /* Aurora gradient (violet→cyan) instead of the old fire/orange. */
+
   background: var(--gradient-violet);
   color: #fff;
   border: none;
@@ -2287,8 +2193,6 @@ export default defineComponent({
 
 .download-button:hover {
   background: var(--gradient-violet-hover);
-  box-shadow: 0 6px 20px -6px rgba(124, 92, 255, 0.6);
-  transform: translateY(-1px);
 }
 
 /* Clear-history button stays right-aligned. */

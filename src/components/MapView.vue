@@ -70,6 +70,9 @@
     <template #response="{ activeTab }">
       <!-- Links tab: rendered list with per-item copy + open affordance -->
       <div v-if="activeTab === 'links'" class="links-pane">
+        <p v-if="urls.length === 0">
+          No URLs found. Try including the sitemap or a different base URL.
+        </p>
         <ul class="url-list">
           <li v-for="(url, index) in urls" :key="index" class="url-item">
             <span class="url-text" :title="url">{{ url }}</span>
@@ -218,11 +221,8 @@ const durationMs = ref<number | null>(null);
 
 // ── Additive computeds for PlaygroundLayout props ──────────────────────────
 
-/**
- * Whether a non-empty result is currently held, used to drive the hasResult prop
- * and the visibility of the download button.
- */
-const hasResult = computed<boolean>(() => urls.value.length > 0);
+/** Whether the API returned a successful result, including an empty URL list. */
+const hasResult = ref<boolean>(false);
 
 /**
  * The result as plain text, one URL per line, ready to be dropped in a .txt
@@ -235,8 +235,7 @@ const urlListText = computed<string>(() => urls.value.join('\n'));
  */
 const statusText = computed<string | null>(() => {
   if (error.value) return 'Error';
-  if (urls.value.length > 0)
-    return `${urls.value.length} link${urls.value.length === 1 ? '' : 's'}`;
+  if (hasResult.value) return `${urls.value.length} link${urls.value.length === 1 ? '' : 's'}`;
   return null;
 });
 
@@ -245,7 +244,7 @@ const statusText = computed<string | null>(() => {
  */
 const statusType = computed<'success' | 'error' | 'idle'>(() => {
   if (error.value) return 'error';
-  if (urls.value.length > 0) return 'success';
+  if (hasResult.value) return 'success';
   return 'idle';
 });
 
@@ -269,10 +268,12 @@ async function handleSubmit(): Promise<void> {
 
   loading.value = true;
   error.value = '';
+  hasResult.value = false;
   const t0 = performance.now();
   try {
     const response = await api.mapping.mapUrls(payload);
     urls.value = response.data.links ?? [];
+    hasResult.value = true;
   } catch (err: any) {
     // Cast err to any to access message property safely
     error.value = err?.message || 'Failed to map URLs. Please check the URL and try again.';
@@ -306,14 +307,6 @@ function downloadJson(): void {
 </script>
 
 <style scoped>
-/* ---------------------------------------------------------------------------
- * MapView — request pane form and result link list.
- *
- * Follows the Glass / Aurora design language: glassy inputs with violet focus
- * halo, aurora-gradient primary buttons, and result rows that lift on hover.
- * Old "fire" gradient and ember orange references are replaced with cool tokens.
- * ------------------------------------------------------------------------- */
-
 /* ── Request pane form ───────────────────────────────────────────────────── */
 
 .map-form {
@@ -335,7 +328,6 @@ function downloadJson(): void {
   color: var(--color-text-soft);
 }
 
-/* Text / number / url inputs — translucent fill, violet focus halo. */
 .form-group input[type='url'],
 .form-group input[type='text'],
 .form-group input[type='number'],
@@ -344,19 +336,16 @@ function downloadJson(): void {
   font-size: 0.93rem;
   font-family: var(--font-sans);
   color: var(--color-text);
-  /* Semi-transparent so the aurora subtly tints the fields. */
+
   background: var(--color-background-soft);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
   outline: none;
-  -webkit-backdrop-filter: blur(6px);
-  backdrop-filter: blur(6px);
   transition:
     border-color var(--transition-fast),
     box-shadow var(--transition-fast);
 }
 
-/* Focus: violet border + soft violet halo ring (cool, not orange). */
 .form-group input:focus,
 .form-group select:focus {
   border-color: var(--violet-500);
@@ -379,8 +368,6 @@ function downloadJson(): void {
   cursor: pointer;
 }
 
-/* Submit button — violet→cyan aurora gradient primary CTA.
-   Replaces the old fire gradient; glow is cool violet, not orange. */
 .submit-btn {
   display: inline-flex;
   align-items: center;
@@ -404,9 +391,6 @@ function downloadJson(): void {
 
 .submit-btn:hover:not(:disabled) {
   background: var(--gradient-violet-hover);
-  transform: translateY(-1px);
-  /* Cool violet glow on hover instead of the old orange. */
-  box-shadow: 0 10px 26px -6px rgba(124, 92, 255, 0.6);
 }
 
 .submit-btn:disabled {
@@ -448,8 +432,6 @@ function downloadJson(): void {
   flex-direction: column;
 }
 
-/* Each URL row: text + action buttons side by side.
-   Hover-lift with a faint violet tint for the glass aesthetic. */
 .url-item {
   display: flex;
   align-items: center;
@@ -464,7 +446,6 @@ function downloadJson(): void {
 }
 
 .url-item:hover {
-  /* Subtle glass highlight on hover — keeps monospace URLs readable. */
   background: var(--glass-fill);
   border-color: var(--color-border-hover);
 }
@@ -491,7 +472,6 @@ function downloadJson(): void {
   flex-shrink: 0;
 }
 
-/* "Open" external link — glass mini-button, violet accent on hover. */
 .open-link {
   display: inline-flex;
   align-items: center;
@@ -526,7 +506,6 @@ function downloadJson(): void {
 
 /* ── Download button (lives in #response-actions slot) ───────────────────── */
 
-/* Compact violet→cyan aurora button matching the submit-btn style. */
 .download-btn {
   padding: 0.35rem 0.8rem;
   font-size: 0.8rem;
@@ -545,7 +524,5 @@ function downloadJson(): void {
 
 .download-btn:hover {
   background: var(--gradient-violet-hover);
-  transform: translateY(-1px);
-  box-shadow: 0 8px 22px -6px rgba(124, 92, 255, 0.6);
 }
 </style>

@@ -1,204 +1,113 @@
-<template>
-  <div class="api-key-input">
-    <h2>API Configuration</h2>
-    <form @submit.prevent="saveApiConfig">
-      <div class="form-group">
-        <label for="apiKey">Firecrawl API Key:</label>
-        <input
-          id="apiKey"
-          v-model="apiKey"
-          type="password"
-          placeholder="Enter your API key"
-          required
-        />
-        <small>
-          You can get your API key on
-          <a href="https://app.firecrawl.dev" target="_blank">the Firecrawl dashboard</a>
-        </small>
-      </div>
-      <div class="form-group">
-        <label for="baseUrl">Firecrawl API base URL (optional):</label>
-        <input id="baseUrl" v-model="baseUrl" type="text" placeholder="https://api.firecrawl.dev" />
-        <small> Leave blank to use the default URL. </small>
-      </div>
-      <button type="submit" class="primary-button">Save</button>
-    </form>
-    <div v-if="error" class="error-message">
-      {{ error }}
-    </div>
-    <div v-if="success" class="success-message">API Key saved successfully!</div>
-  </div>
-</template>
-
-<script lang="ts">
-import { defineComponent, ref, onMounted } from 'vue';
+<script setup lang="ts">
+/** Browser-local API settings. Credentials are never included in exported results. */
+import { ref } from 'vue';
 import { refreshApiClients } from '@/plugins/api';
+import { getApiConfig } from '@/config/api';
 import { normalizeFirecrawlBaseUrl } from '@/services/firecrawl';
 
-/**
- * Component allowing users to configure and store the Firecrawl API key and base URL.
- * This component handles the persistence of these settings in local storage.
- *
- * @returns Component options for the API key input view.
- */
+const config = getApiConfig();
+const apiKey = ref<string>(config.apiKey);
+const baseUrl = ref<string>(config.basePath);
+const error = ref<string>('');
+const success = ref<boolean>(false);
 
-export default defineComponent({
-  name: 'ApiKeyInput',
-  setup() {
-    const apiKey = ref(localStorage.getItem('firecrawl_api_key') || '');
-    const baseUrl = ref(localStorage.getItem('firecrawl_base_url') || '');
-    const error = ref('');
-    const success = ref(false);
-
-    // Automatically display if no key is configured
-    onMounted(() => {
-      if (!apiKey.value) {
-        error.value = 'Please configure your API key to continue';
-      }
-      if (baseUrl.value) {
-        baseUrl.value = normalizeFirecrawlBaseUrl(baseUrl.value);
-      }
-    });
-
-    const saveApiConfig = () => {
-      try {
-        if (!apiKey.value) {
-          throw new Error('Please enter a valid API key');
-        }
-        // Save the API key
-        localStorage.setItem('firecrawl_api_key', apiKey.value);
-        // Save the base URL (even if empty to override any previous value if needed)
-        localStorage.setItem('firecrawl_base_url', normalizeFirecrawlBaseUrl(baseUrl.value));
-
-        success.value = true;
-        error.value = '';
-        setTimeout(() => (success.value = false), 3000);
-
-        // Update API clients dynamically without reloading the page
-        refreshApiClients(baseUrl.value, apiKey.value);
-      } catch (err) {
-        error.value = err instanceof Error ? err.message : 'Unknown error';
-        success.value = false;
-      }
-    };
-
-    return {
-      apiKey,
-      baseUrl,
-      error,
-      success,
-      saveApiConfig,
-    };
-  },
-});
+/** Validate the connection URL and persist the existing settings keys without reloading. */
+const saveApiConfig = (): void => {
+  success.value = false;
+  error.value = '';
+  try {
+    const normalized = normalizeFirecrawlBaseUrl(baseUrl.value);
+    const parsed = new URL(normalized);
+    if (!['http:', 'https:'].includes(parsed.protocol))
+      throw new Error('Use an HTTP or HTTPS API URL.');
+    if (!apiKey.value.trim() && parsed.hostname === 'api.firecrawl.dev')
+      throw new Error('Firecrawl Cloud requires an API key.');
+    refreshApiClients(normalized, apiKey.value.trim());
+    baseUrl.value = normalized;
+    success.value = true;
+  } catch (reason: unknown) {
+    error.value = reason instanceof Error ? reason.message : 'Unable to save API settings.';
+  }
+};
 </script>
 
+<template>
+  <form class="api-key-input" @submit.prevent="saveApiConfig">
+    <div class="form-group">
+      <label for="apiKey">Firecrawl API Key</label>
+      <input
+        id="apiKey"
+        v-model="apiKey"
+        type="password"
+        placeholder="Enter your API key"
+        autocomplete="off"
+        spellcheck="false"
+        aria-describedby="key-help"
+        @input="success = false"
+      />
+      <small id="key-help"
+        >Use your instance’s API key, not its web UI password. Optional only when your server does
+        not require a key.</small
+      >
+    </div>
+    <div class="form-group">
+      <label for="baseUrl">Firecrawl API base URL</label>
+      <input
+        id="baseUrl"
+        v-model="baseUrl"
+        type="url"
+        placeholder="https://api.firecrawl.dev"
+        aria-describedby="url-help"
+        @input="success = false"
+      />
+      <small id="url-help"
+        >Use the service root, without /v1 or /v2. Leave blank for Firecrawl Cloud.</small
+      >
+    </div>
+    <div class="settings-privacy">
+      Saved in this browser’s local storage. Use a trusted browser profile.
+    </div>
+    <div v-if="error" class="error-message" role="alert">{{ error }}</div>
+    <div v-if="success" class="success-message" role="status">Connection settings saved.</div>
+    <button type="submit" class="btn btn-primary">Save connection</button>
+  </form>
+</template>
+
 <style scoped>
-/* ---------------------------------------------------------------------------
- * ApiKeyInput — small reusable glass settings card.
- *
- * Subtle, not flashy: a frosted-glass panel, glassy inputs with violet focus
- * halo, and a violet→cyan aurora gradient Save button. Replaces the old fire
- * gradient and hardcoded orange rgba glow with cool palette tokens.
- * ------------------------------------------------------------------------- */
-
-/* Frosted glass panel — sits coherently over the aurora. */
 .api-key-input {
-  max-width: 500px;
-  margin: 0 auto;
-  padding: 1.5rem;
-  /* Glass surface: translucent fill + heavy backdrop blur. */
-  background: var(--glass-fill);
-  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
-  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
-  border: 1px solid var(--glass-border);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--glass-shadow);
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
 }
-
-.form-group {
-  margin-bottom: 1rem;
-}
-
-/* Field labels — consistent weight with other form components. */
 label {
   display: block;
-  margin-bottom: 0.35rem;
-  font-size: 0.88rem;
-  font-weight: 600;
-  color: var(--color-text-soft);
+  font-size: 12px;
+  font-weight: 550;
+  margin-bottom: 8px;
 }
-
-/* Inputs inherit global glassy input styles; override width + focus here. */
 input {
   width: 100%;
-  padding: 0.5rem 0.75rem;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
-  /* Semi-transparent so the aurora subtly tints the fields. */
-  background: var(--color-background-soft);
-  color: var(--color-text);
-  -webkit-backdrop-filter: blur(6px);
-  backdrop-filter: blur(6px);
-  transition:
-    border-color var(--transition-fast),
-    box-shadow var(--transition-fast);
+  background: var(--color-background);
 }
-
-/* Focus: violet border + soft violet halo ring (cool, not orange). */
-input:focus {
-  outline: none;
-  border-color: var(--violet-500);
-  box-shadow: var(--shadow-ring);
-}
-
-/* The Save button is a primary action — violet→cyan aurora gradient.
-   Replaces the old fire gradient; glow is cool violet, not orange. */
-button {
-  background: var(--gradient-violet);
-  color: #fff;
-  padding: 0.6rem 1.1rem;
-  border: none;
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-  font-size: 0.95rem;
-  font-weight: 600;
-  box-shadow: var(--box-shadow-button);
-  transition:
-    background var(--transition-fast),
-    box-shadow var(--transition-fast),
-    transform var(--transition-fast);
-}
-
-button:hover {
-  background: var(--gradient-violet-hover);
-  transform: translateY(-2px);
-  /* Cool violet glow on hover instead of the old orange. */
-  box-shadow: 0 10px 26px -6px rgba(124, 92, 255, 0.6);
-}
-
-button:active {
-  transform: translateY(0);
-}
-
-/* Inline feedback messages — semantic danger / success tokens. */
-.error-message {
-  color: var(--hue-danger);
-  font-size: 0.88rem;
-  margin-top: 0.75rem;
-}
-
-.success-message {
-  color: var(--hue-success);
-  font-size: 0.88rem;
-  margin-top: 0.75rem;
-}
-
-/* Helper text under fields. */
 small {
   display: block;
-  margin-top: 0.3rem;
-  font-size: 0.8em;
-  color: var(--color-text-mute);
+  font-size: 11px;
+  line-height: 1.7;
+  color: var(--color-text-soft);
+  margin-top: 8px;
+}
+.settings-privacy {
+  color: var(--color-text-soft);
+  font-size: 12px;
+  padding: 12px;
+  background: var(--color-background-mute);
+  border-radius: 6px;
+}
+button {
+  align-self: flex-start;
+}
+.success-message {
+  font-size: 12px;
+  color: var(--hue-success);
 }
 </style>

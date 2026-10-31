@@ -318,6 +318,7 @@ function applyStatus(data: DeepResearchStatus): void {
 function pollStatus(id: string): void {
   stopPolling();
   intervalId = setInterval(async () => {
+    if (document.hidden) return;
     try {
       const response = await api.research!.getDeepResearchStatus(id);
       applyStatus(response.data);

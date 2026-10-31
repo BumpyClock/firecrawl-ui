@@ -208,6 +208,7 @@ function stopPolling(): void {
 function pollStatus(id: string): void {
   stopPolling();
   intervalId = setInterval(async () => {
+    if (document.hidden) return;
     try {
       const response = await api.batchScraping!.getBatchScrapeStatus(id);
       const data = response.data;
@@ -217,7 +218,7 @@ function pollStatus(id: string): void {
       creditsUsed.value = data.creditsUsed;
       progress.value = data.total > 0 ? Math.round((data.completed / data.total) * 100) : 0;
 
-      if (data.status === 'completed' || data.status === 'failed') {
+      if (data.status === 'completed' || data.status === 'failed' || data.status === 'cancelled') {
         results.value = data.data;
         stopPolling();
       }

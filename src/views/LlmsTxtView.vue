@@ -149,6 +149,7 @@ function stopPolling(): void {
 function pollStatus(id: string): void {
   stopPolling();
   intervalId = setInterval(async () => {
+    if (document.hidden) return;
     try {
       const response = await api.llmsTxt!.getLlmsTxtStatus(id);
       const data = response.data;

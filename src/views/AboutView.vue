@@ -111,7 +111,7 @@ const links: ExternalLink[] = [
   {
     label: 'GitHub repository',
     desc: 'Source, issues, and contributions',
-    href: 'https://github.com/obeone/firecrawl-ui',
+    href: 'https://github.com/BumpyClock/firecrawl-ui',
   },
 ];
 </script>
@@ -138,7 +138,7 @@ const links: ExternalLink[] = [
         </a>
         <a
           class="btn btn-ghost"
-          href="https://github.com/obeone/firecrawl-ui"
+          href="https://github.com/BumpyClock/firecrawl-ui"
           target="_blank"
           rel="noopener noreferrer"
         >
@@ -201,11 +201,6 @@ const links: ExternalLink[] = [
 </template>
 
 <style scoped>
-/* ---------------------------------------------------------------------------
- * AboutView — frosted glass content over the aurora, matching HomeView.
- * Icon cards, gradient hero, hover-lift on every interactive surface.
- * ------------------------------------------------------------------------- */
-
 .about-view {
   /* Opt out of the .app-main > * flex:1 stretch so the page sizes to its
      content and .app-main handles the scroll (otherwise flex-shrink squashes
@@ -216,15 +211,10 @@ const links: ExternalLink[] = [
   margin: 0 auto;
 }
 
-/* ---------------------------------------------------------------------------
- * Hero — glass banner with aurora gradient title and outbound CTAs.
- * ------------------------------------------------------------------------- */
 .hero {
   position: relative;
   text-align: center;
   background: var(--glass-fill-strong);
-  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
-  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
   border: 1px solid var(--glass-border);
   border-radius: var(--radius-xl);
   padding: 3.5rem 2rem;
@@ -233,7 +223,6 @@ const links: ExternalLink[] = [
   overflow: hidden;
 }
 
-/* Aurora glow bleeding from the top, same as .page-container::before. */
 .hero::before {
   content: '';
   position: absolute;
@@ -250,12 +239,7 @@ const links: ExternalLink[] = [
 }
 
 .hero h1 {
-  /* Aurora gradient text, hero-only treatment. */
-  background: var(--gradient-aurora);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  color: transparent;
+  color: var(--color-heading);
   font-size: clamp(2rem, 4.5vw, 3rem);
   font-weight: 800;
   letter-spacing: -0.03em;
@@ -278,9 +262,6 @@ const links: ExternalLink[] = [
   margin-top: 1.75rem;
 }
 
-/* ---------------------------------------------------------------------------
- * Buttons — primary (violet sweep) and ghost (glass outline).
- * ------------------------------------------------------------------------- */
 .btn {
   display: inline-flex;
   align-items: center;
@@ -307,14 +288,10 @@ const links: ExternalLink[] = [
 
 .btn-primary:hover {
   background: var(--gradient-violet-hover);
-  transform: translateY(-2px);
-  box-shadow: 0 10px 28px -6px rgba(124, 92, 255, 0.6);
 }
 
 .btn-ghost {
   background: var(--glass-fill);
-  -webkit-backdrop-filter: blur(12px) saturate(160%);
-  backdrop-filter: blur(12px) saturate(160%);
   border: 1px solid var(--glass-border);
   color: var(--color-text);
 }
@@ -322,16 +299,10 @@ const links: ExternalLink[] = [
 .btn-ghost:hover {
   border-color: var(--violet-500);
   color: var(--brand-strong);
-  transform: translateY(-2px);
 }
 
-/* ---------------------------------------------------------------------------
- * Shared section shell — glass card, hover-lift, section heading.
- * ------------------------------------------------------------------------- */
 section {
   background: var(--glass-fill);
-  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
-  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
   border: 1px solid var(--glass-border);
   border-radius: var(--radius-lg);
   box-shadow: var(--box-shadow-card);
@@ -379,10 +350,6 @@ section > h2 {
 
 .cap-card:hover {
   border-color: var(--color-border-hover);
-  box-shadow:
-    0 0 0 1px rgba(124, 92, 255, 0.2),
-    0 10px 32px -12px rgba(124, 92, 255, 0.45);
-  transform: translateY(-3px);
 }
 
 /* Rounded icon chip with a soft brand fill and gradient-strong glyph. */
@@ -450,7 +417,6 @@ section > h2 {
 .link-card:hover {
   border-color: var(--violet-500);
   background: var(--brand-soft);
-  transform: translateY(-2px);
 }
 
 .link-label {

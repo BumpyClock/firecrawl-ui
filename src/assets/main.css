@@ -1,185 +1,27 @@
 @import './base.css';
 
-/*
- * Firecrawl UI — Shared component layer.
- *
- * Reusable primitives and the page-level classes the views consume. Built on
- * the Glass / Aurora tokens from base.css. The legacy class names
- * (.page-container, .scrape-config-container, .scrape-config-form,
- * .primary-button) are kept and restyled as frosted-glass surfaces so existing
- * templates pick up the new look for free.
- */
-
-/* ---------------------------------------------------------------------------
- * Page containers
- * ------------------------------------------------------------------------- */
-
-/*
- * Centered content panel used across configuration views. A frosted-glass
- * surface floating over the aurora: translucent fill, heavy backdrop blur,
- * a top-lit hairline and a faint cool glow bleeding from the top edge.
- */
-.scrape-config-container,
-.page-container {
-  position: relative;
-  background: var(--glass-fill);
-  /* Backdrop blur is what makes the aurora read as "frosted" behind content. */
-  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
-  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
-  border: 1px solid var(--glass-border);
-  border-radius: var(--radius-xl);
-  box-shadow: var(--glass-shadow);
-  padding: 2.5rem 3rem;
-  max-width: 640px;
-  margin: 2.5rem auto;
-  color: var(--color-text);
-  display: flex;
-  flex-direction: column;
-  gap: 1.75rem;
-}
-
-/* Subtle cool aurora glow bleeding from the top of every panel. */
-.scrape-config-container::before,
-.page-container::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  background: var(--glow-aurora);
-  pointer-events: none;
-  z-index: 0;
-}
-
-/* Keep panel content above the decorative glow layer. */
-.scrape-config-container > *,
-.page-container > * {
-  position: relative;
-  z-index: 1;
-}
-
-/* Headings inside panels. */
-.scrape-config-container h1,
-.scrape-config-container h2,
-.page-container h1,
-.page-container h2 {
-  color: var(--color-heading);
-  font-weight: 700;
-  margin-bottom: 0.75rem;
-  letter-spacing: -0.02em;
-}
-
-/* ---------------------------------------------------------------------------
- * Generic surface card
- * ------------------------------------------------------------------------- */
-
-/*
- * Standalone card surface for grouping content (results, panels, items).
- * Glassy by default so it sits coherently over the aurora.
- */
-.card {
-  background: var(--glass-fill);
-  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
-  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
-  border: 1px solid var(--glass-border);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--box-shadow-card);
-  padding: 1.5rem;
-  transition:
-    border-color var(--transition),
-    box-shadow var(--transition),
-    transform var(--transition);
-}
-
-/* Optional interactive lift for clickable cards. */
-.card--hover:hover {
-  border-color: var(--color-border-hover);
-  box-shadow: var(--box-shadow-container);
-  transform: translateY(-3px);
-}
-
-/* ---------------------------------------------------------------------------
- * Forms
- * ------------------------------------------------------------------------- */
-
-/* Field labels. */
-.scrape-config-form label {
-  font-size: 0.95rem;
-  font-weight: 500;
-  color: var(--color-text);
-  margin-bottom: 0.4rem;
-  display: block;
-}
-
-/* Text-like inputs inside config forms span the full width. */
-.scrape-config-form input[type='text'],
-.scrape-config-form input[type='url'],
-.scrape-config-form input[type='number'],
-.scrape-config-form input[type='password'],
-.scrape-config-form select,
-.scrape-config-form textarea {
+/** Shared tool forms and feedback. Spacing follows a four-pixel base grid. */
+.page-container,
+.scrape-config-container {
   width: 100%;
-  padding: 0.7rem 0.9rem;
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--color-border);
-  /* Translucent fill so the aurora subtly tints fields inside glass panels. */
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 28px;
   background: var(--color-background-soft);
-  color: var(--color-text);
-  margin-bottom: 1.2rem;
-  font-size: 0.95rem;
-  -webkit-backdrop-filter: blur(6px);
-  backdrop-filter: blur(6px);
-  transition:
-    border-color var(--transition-fast),
-    box-shadow var(--transition-fast);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
 }
-
-/* Focus state matches the global ember ring. */
-.scrape-config-form input[type='text']:focus,
-.scrape-config-form input[type='url']:focus,
-.scrape-config-form input[type='number']:focus,
-.scrape-config-form input[type='password']:focus,
-.scrape-config-form select:focus,
-.scrape-config-form textarea:focus {
-  border-color: var(--ember-500);
-  box-shadow: var(--shadow-ring);
-  outline: none;
+.page-container h1,
+.scrape-config-container h1 {
+  font-size: 24px;
+  margin-bottom: 24px;
 }
-
-/* Checkboxes pick up the brand accent. */
-.scrape-config-form input[type='checkbox'] {
-  accent-color: var(--ember-500);
-  width: 1.1em;
-  height: 1.1em;
-  margin-right: 0.5em;
+.card {
+  padding: 20px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-background-soft);
 }
-
-/* Section sub-titles within forms, in the brand color. */
-.scrape-config-form .section-title,
-.section-title {
-  font-size: 0.8rem;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--brand-strong);
-  margin: 1.5rem 0 0.7rem 0;
-  font-weight: 700;
-}
-
-/* Muted helper text under fields. */
-.scrape-config-form .helper-text,
-.helper-text {
-  color: var(--color-text-soft);
-  font-size: 0.88rem;
-  margin-bottom: 1.2rem;
-}
-
-/* ---------------------------------------------------------------------------
- * Buttons
- * ------------------------------------------------------------------------- */
-
-/*
- * Shared button base. The .btn class plus a variant gives a complete button;
- * the legacy selectors below reuse the same look.
- */
 .btn,
 .primary-button,
 .scrape-config-form button,
@@ -187,146 +29,193 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
-  font-family: inherit;
-  font-size: 0.98rem;
-  font-weight: 600;
-  line-height: 1;
+  gap: 8px;
   border: 1px solid transparent;
   border-radius: var(--radius-sm);
-  padding: 0.75rem 1.5rem;
+  padding: 11px 16px;
+  font: 600 13px/1.3 var(--font-sans);
   cursor: pointer;
-  text-decoration: none;
-  transition:
-    background var(--transition-fast),
-    border-color var(--transition-fast),
-    box-shadow var(--transition-fast),
-    transform var(--transition-fast),
-    color var(--transition-fast);
 }
-
-/* Primary / aurora button — the main call to action (violet→cyan sweep). */
 .btn-primary,
 .primary-button,
 .scrape-config-form button,
 .scrape-config-form input[type='submit'] {
-  background: var(--gradient-violet);
-  color: #fff;
-  box-shadow: var(--box-shadow-button);
-}
-
-.btn-primary:hover,
-.primary-button:hover,
-.scrape-config-form button:hover,
-.scrape-config-form input[type='submit']:hover {
-  background: var(--gradient-violet-hover);
-  transform: translateY(-2px);
-  /* Soft violet glow on hover instead of the old orange one. */
-  box-shadow: 0 10px 28px -6px rgba(124, 92, 255, 0.6);
+  background: var(--gradient-button);
   color: #fff;
 }
-
-.btn-primary:active,
-.primary-button:active,
-.scrape-config-form button:active {
-  transform: translateY(0);
+.btn-primary:hover:not(:disabled),
+.primary-button:hover:not(:disabled),
+.scrape-config-form button:hover:not(:disabled) {
+  background: var(--gradient-button-hover);
+  color: #fff;
 }
-
-/* The legacy primary-button stays right-aligned as before. */
-.primary-button {
-  display: block;
-  margin-left: auto;
-  margin-top: 1.5rem;
-}
-
-/* Secondary / ghost button — frosted glass, neutral until hovered. */
 .btn-secondary {
-  background: var(--glass-fill);
-  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
-  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
-  color: var(--color-heading);
-  border-color: var(--glass-border);
+  color: var(--color-text);
+  background: var(--color-background-soft);
+  border-color: var(--color-border-hover);
 }
-
-.btn-secondary:hover {
-  border-color: var(--violet-500);
-  color: var(--brand-strong);
-  background: var(--brand-soft);
-}
-
-/* Danger button. */
 .btn-danger {
   background: var(--hue-danger);
-  color: #fff;
+  color: var(--color-background);
 }
-
-.btn-danger:hover {
-  background: #cf3b40;
-  transform: translateY(-2px);
+.primary-button {
+  margin-top: 8px;
 }
-
-/* Disabled state for all button variants. */
-.btn:disabled,
-.btn[disabled],
-.primary-button:disabled,
-.scrape-config-form button:disabled {
-  opacity: 0.55;
-  cursor: not-allowed;
+.pg-request form {
+  display: flex;
+  flex-direction: column;
+}
+.pg-request .form-group {
+  margin-bottom: 20px;
+}
+.pg-request label {
+  display: block;
+  margin-bottom: 7px;
+  font-size: 12px;
+  font-weight: 550;
+  color: var(--color-text);
+}
+.pg-request input:not([type='checkbox']):not([type='radio']),
+.pg-request select,
+.pg-request textarea {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  padding: 9px 11px;
+  margin-bottom: 0;
+  font-size: 13px;
+  background: var(--color-background);
+  border-color: var(--color-border-hover);
+  border-radius: var(--radius-sm);
+}
+.pg-request input[type='checkbox'] {
+  width: 15px;
+  height: 15px;
+  flex-shrink: 0;
+  margin: 0 8px 0 0;
+  vertical-align: middle;
+}
+.pg-request label:has(input[type='checkbox']) {
+  display: flex;
+  align-items: flex-start;
+  gap: 4px;
+  padding: 5px 0;
+  line-height: 1.5;
+}
+.pg-request label:has(input[type='checkbox']) input {
+  margin-top: 2px;
+}
+.pg-request .grid-layout {
+  gap: 12px;
+}
+.pg-request small,
+.helper-text,
+.hint {
+  display: block;
+  color: var(--color-text-soft);
+  font-size: 11px;
+  line-height: 1.6;
+  margin-top: 6px;
+}
+.pg-request .options-fieldset {
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  border-top: 1px solid var(--color-border);
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  transform: none;
+  margin: 0 0 20px;
+}
+.pg-request .options-fieldset > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  list-style: none;
+  padding: 14px 0;
+  color: var(--color-text);
+  font-size: 12px;
+  font-weight: 600;
+}
+.pg-request .options-fieldset > summary::-webkit-details-marker {
+  display: none;
+}
+.pg-request .options-fieldset > summary::after {
+  content: '+';
+  font: 16px var(--font-mono);
+  color: var(--color-text-mute);
+}
+.pg-request .options-fieldset[open] > summary::after {
+  content: '−';
+}
+.pg-request .options-fieldset > legend {
+  font-size: 12px;
+  padding: 12px 0;
+}
+.pg-request .api-note {
+  font-size: 11px;
+  margin-bottom: 12px;
+  color: var(--color-text-soft);
+}
+.pg-request button[type='submit'] {
+  width: 100%;
+  min-height: 40px;
+  border-radius: var(--radius-sm);
+  background: var(--gradient-button);
+  color: white;
+  font-size: 13px;
+  font-weight: 600;
+  box-shadow: none;
+  transform: none;
+}
+.pg-request button[type='submit']:hover:not(:disabled) {
+  background: var(--gradient-button-hover);
   transform: none;
   box-shadow: none;
 }
-
-/* ---------------------------------------------------------------------------
- * Badges / status pills
- * ------------------------------------------------------------------------- */
-
-/* Inline status pill; pair with a modifier for color. */
+.section-title {
+  font-size: 12px;
+  font-weight: 600;
+  margin: 20px 0 12px;
+}
+.error-message {
+  color: var(--hue-danger);
+  font-size: 12px;
+}
 .badge {
   display: inline-flex;
   align-items: center;
-  gap: 0.35rem;
-  font-size: 0.78rem;
-  font-weight: 600;
-  padding: 0.2rem 0.6rem;
-  border-radius: var(--radius-pill);
-  line-height: 1.4;
+  gap: 5px;
+  font-size: 11px;
+  font-weight: 500;
+  padding: 3px 8px;
+  border-radius: 4px;
 }
-
 .badge--success {
   color: var(--hue-success);
   background: var(--hue-success-soft);
 }
-
 .badge--warning {
   color: var(--hue-warning);
   background: var(--hue-warning-soft);
 }
-
 .badge--danger {
   color: var(--hue-danger);
   background: var(--hue-danger-soft);
 }
-
 .badge--info {
   color: var(--hue-info);
   background: var(--hue-info-soft);
 }
-
 .badge--brand {
   color: var(--brand-strong);
   background: var(--brand-soft);
 }
-
-/* ---------------------------------------------------------------------------
- * Responsive
- * ------------------------------------------------------------------------- */
-
-@media (max-width: 700px) {
-  .scrape-config-container,
-  .page-container {
-    padding: 1.5rem 1.1rem;
-    max-width: 100%;
-    margin: 1.25rem auto;
-    border-radius: var(--radius-lg);
+@media (max-width: 760px) {
+  .page-container,
+  .scrape-config-container {
+    padding: 20px;
   }
 }
