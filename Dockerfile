@@ -5,14 +5,14 @@
 
 # Stage 1: Build the application
 # Uses a Node.js image to install dependencies and build the Vue.js application.
-FROM node:26-slim AS build
+FROM node:26.12.1-slim AS build
 
 WORKDIR /app
 
 # Copy package.json and package-lock.json to leverage Docker cache
-# for npm install.
+# for the frozen dependency installation.
 COPY --link package.json package-lock.json ./
-RUN npm install
+RUN npm install --global npm@11.12.0 && npm ci
 
 # Copy the rest of the application source code and build it.
 COPY --link . .
