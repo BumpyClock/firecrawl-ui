@@ -34,22 +34,28 @@ The key stays in browser storage and is sent to the configured API for authentic
 
 ## Verify
 
+Use Node 26.12.1 from `.node-version` and prepared npm 11.12.0.
+
 ```sh
 npm ci
 npx prettier --check .
 npx eslint .
-npm test --if-present
+npm test
 npm run typecheck
 npm run build
 ```
 
 `npm test` compiles and mounts real Vue components in JSDOM. Tests cover response states, default preview, sanitized Markdown, duplicate-submit prevention, settings persistence, hidden polling, terminal cancellation, and removal of costly idle CSS. `typecheck` checks TypeScript modules and tests. Vite compiles Vue templates during the build.
 
-Run the same gates on secret-free Linux with Boat:
+`npm run typecheck:vue` adds pinned Vue SFC/template diagnostics. It currently reports preexisting errors and is deliberately not a required CI/hook gate until that baseline is repaired. Generic Vue shims and the Vite build do not replace those diagnostics.
 
-```sh
-boat run --no-env --type small --push . --timeout 600 -- bash -lc 'npm ci && npx prettier --check . && npx eslint . && npm test --if-present && npm run typecheck && npm run build'
-```
+Compatible Linux workflow jobs select Boat. Owner-only execution is approved; outside contributors and bots remain blocked by account policy. Pages ownership and inherited registry/signing namespaces still require review before activation. Runner selection does not authorize publication. For manual validation, use a secret-free `--no-env` Boat sandbox, upload only reviewed source/tooling files, and prepare the same pinned runtime before running these gates. Never upload `.env`, credentials, browser state or generated recordings.
+
+### Opt-in pre-push
+
+After `npm ci`, run `sh scripts/install-hooks.sh` explicitly. This installs no tools and refuses an unrelated active hook/config. Git for Windows supplies the required `sh`. The hook requires a clean checkout of the exact pushed commit and prepared pinned tools; it never stashes edits. All non-deletion updates run full Prettier, ESLint, project TypeScript and component tests. New/unknown bases use those same full checks; deletion-only pushes need no checks. Distinct pushed commits require separate checkouts. Existing CI/build and deployment gates remain authoritative.
+
+Run `python3 scripts/test-hooks.py` for disposable hook/installer fixtures. Stubs test command failures and ref handling, not native platform acceptance. The hook does not install dependencies, write formatting, build/deploy containers or contact Firecrawl/providers.
 
 See [idle performance verification](docs/performance.md) for the browser probe, measured mechanism, and limits. Screenshots and generated scraping outputs are local evidence, not versioned fixtures.
 

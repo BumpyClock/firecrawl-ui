@@ -8,6 +8,7 @@
     "build": "vite build",
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
+    "typecheck:vue": "vue-tsc --noEmit",
     "preview": "vite preview",
     "lint": "eslint . --ext .ts,.tsx,.js,.jsx,.vue",
     "format": "prettier --write ."
@@ -37,6 +38,12 @@
     "typescript": "^5.4.5",
     "vite": "^8.3.5",
     "vite-plugin-vue-devtools": "^8.2.1",
-    "vitest": "^5.0.5"
-  }
+    "vitest": "^5.0.5",
+    "vue-tsc": "3.3.14"
+  },
+  "engines": {
+    "node": "26.12.1",
+    "npm": "11.12.0"
+  },
+  "packageManager": "npm@11.12.0"
 }
